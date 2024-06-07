@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -97,19 +103,30 @@ fun MenuScreen(navController: NavHostController) {
 
 @Composable
 fun AhorcadoScreen(navController: NavHostController, word: String) {
-    var wordArray by remember {
-        mutableStateOf(word.toCharArray().toList())
-    }
-    var showDialog by remember { mutableStateOf(false) }
+    var wordArray by remember { mutableStateOf(word.toCharArray().toList()) }
+    var wordState by remember { mutableStateOf(List(wordArray.size) { null as Char? }) }
     var lives by remember { mutableIntStateOf(3) }
-    var wordState by remember {
-        mutableStateOf(List(wordArray.size) { null as Char? })
+    var showDialog by remember { mutableStateOf(false) }
+    var points by remember {
+        mutableStateOf(0)
     }
     val rows = ('a'..'z').chunked(5)
     var guessedLetters by remember { mutableStateOf(setOf<Char>()) }
 
+
     if (lives <= 0) {
         showDialog = true
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.background),
+            contentDescription = "Paper Background",
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier
+                .matchParentSize()
+                .alpha(0.85f)
+        )
     }
 
     Column(
@@ -119,6 +136,8 @@ fun AhorcadoScreen(navController: NavHostController, word: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(text = "Puntaje: $points", fontSize = 50.sp, color = Color.Black)
+        Spacer(modifier = Modifier.height(16.dp))
         Image(
             painter = painterResource(
                 id = when (lives) {
@@ -129,14 +148,12 @@ fun AhorcadoScreen(navController: NavHostController, word: String) {
                 }
             ), contentDescription = "Ahorcado", modifier = Modifier.width(400.dp)
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = wordState.joinToString(separator = " ") { it?.toString() ?: "_" },
             fontSize = 50.sp,
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleLarge,
+            color = Color.Black
         )
         Spacer(modifier = Modifier.height(50.dp))
         if (showDialog) {
@@ -173,9 +190,12 @@ fun AhorcadoScreen(navController: NavHostController, word: String) {
                                         }
                                     }
                                 }
+                                if(wordState == wordArray){
+                                    points++
+                                    navController.navigate("ahorcadoscreen/${getWord()}")
+                                }
                             } else {
                                 lives--
-
                             }
                         }, enabled = !guessedLetters.contains(i)) {
                             Text(text = i.toString())
