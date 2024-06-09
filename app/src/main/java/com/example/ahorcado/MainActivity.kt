@@ -195,6 +195,7 @@ fun AhorcadoScreen(navController: NavHostController, word: String) {
                                     navController.navigate("ahorcadoscreen/${getWord()}")
                                 }
                             } else {
+                                guessedLetters = guessedLetters + i
                                 lives--
                             }
                         }, enabled = !guessedLetters.contains(i)) {
