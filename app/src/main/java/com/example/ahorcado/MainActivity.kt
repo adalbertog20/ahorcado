@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,7 +69,8 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             AhorcadoScreen(
                                 navController,
-                                word = backStackEntry.arguments?.getString("word") ?: ""
+                                word = backStackEntry.arguments?.getString("word") ?: "",
+                                viewmodel = GameViewModel()
                             )
                         }
                     }
@@ -102,17 +104,19 @@ fun MenuScreen(navController: NavHostController) {
 }
 
 @Composable
-fun AhorcadoScreen(navController: NavHostController, word: String) {
-    var wordArray by remember { mutableStateOf(word.toCharArray().toList()) }
+fun AhorcadoScreen(navController: NavHostController, word: String, viewmodel : GameViewModel) {
+    var palabra by remember {
+        mutableStateOf(word)
+    }
+    var wordArray by remember { mutableStateOf(palabra.toCharArray().toList()) }
     var wordState by remember { mutableStateOf(List(wordArray.size) { null as Char? }) }
     var lives by remember { mutableIntStateOf(3) }
     var showDialog by remember { mutableStateOf(false) }
-    var points by remember {
+    var points by rememberSaveable {
         mutableStateOf(0)
     }
     val rows = ('a'..'z').chunked(5)
     var guessedLetters by remember { mutableStateOf(setOf<Char>()) }
-
 
     if (lives <= 0) {
         showDialog = true
@@ -136,7 +140,8 @@ fun AhorcadoScreen(navController: NavHostController, word: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Puntaje: $points", fontSize = 50.sp, color = Color.Black)
+        Text(text = palabra, fontSize = 50.sp, color = Color.Black)
+        Text(text = "Puntaje: ${viewmodel.score}", fontSize = 50.sp, color = Color.Black)
         Spacer(modifier = Modifier.height(16.dp))
         Image(
             painter = painterResource(
@@ -191,8 +196,14 @@ fun AhorcadoScreen(navController: NavHostController, word: String) {
                                     }
                                 }
                                 if(wordState == wordArray){
-                                    points++
-                                    navController.navigate("ahorcadoscreen/${getWord()}")
+                                    var newPal = getWord()
+                                    viewmodel.addScore()
+                                    lives = 3
+                                    showDialog = false
+                                    wordArray = newPal.toCharArray().toList()
+                                    wordState = List(wordArray.size) { null as Char?}
+                                    guessedLetters = setOf<Char>()
+                                    palabra = newPal
                                 }
                             } else {
                                 guessedLetters = guessedLetters + i
@@ -213,7 +224,7 @@ fun AhorcadoScreen(navController: NavHostController, word: String) {
 fun DefaultPreview() {
     val navController = rememberNavController()
     AhorcadoTheme {
-        AhorcadoScreen(navController, getWord())
+        AhorcadoScreen(navController, getWord(), GameViewModel())
     }
 }
 
