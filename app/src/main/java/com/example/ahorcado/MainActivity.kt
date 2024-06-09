@@ -104,22 +104,17 @@ fun MenuScreen(navController: NavHostController) {
 }
 
 @Composable
-fun AhorcadoScreen(navController: NavHostController, word: String, viewmodel : GameViewModel) {
+fun AhorcadoScreen(navController: NavHostController, word: String, viewmodel: GameViewModel) {
     var palabra by remember {
         mutableStateOf(word)
     }
     var wordArray by remember { mutableStateOf(palabra.toCharArray().toList()) }
     var wordState by remember { mutableStateOf(List(wordArray.size) { null as Char? }) }
-    var lives by remember { mutableIntStateOf(3) }
-    var showDialog by remember { mutableStateOf(false) }
-    var points by rememberSaveable {
-        mutableStateOf(0)
-    }
     val rows = ('a'..'z').chunked(5)
     var guessedLetters by remember { mutableStateOf(setOf<Char>()) }
 
-    if (lives <= 0) {
-        showDialog = true
+    if (viewmodel.lives <= 0) {
+        viewmodel.setShowDialog()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -144,7 +139,7 @@ fun AhorcadoScreen(navController: NavHostController, word: String, viewmodel : G
         Spacer(modifier = Modifier.height(16.dp))
         Image(
             painter = painterResource(
-                id = when (lives) {
+                id = when (viewmodel.lives) {
                     3 -> R.drawable.mono_1
                     2 -> R.drawable.mono_2
                     1 -> R.drawable.mono_3
@@ -160,9 +155,9 @@ fun AhorcadoScreen(navController: NavHostController, word: String, viewmodel : G
             color = Color.Black
         )
         Spacer(modifier = Modifier.height(50.dp))
-        if (showDialog) {
+        if (viewmodel.showDialog) {
             AlertDialog(
-                onDismissRequest = { showDialog = false },
+                onDismissRequest = { viewmodel.setShowDialogFalse() },
                 confirmButton = {
                     Button(onClick = {
                         navController.navigate("ahorcadoscreen/${getWord()}")
@@ -194,19 +189,18 @@ fun AhorcadoScreen(navController: NavHostController, word: String, viewmodel : G
                                         }
                                     }
                                 }
-                                if(wordState == wordArray){
+                                if (wordState == wordArray) {
                                     var newPal = getWord()
                                     viewmodel.addScore()
-                                    lives = 3
-                                    showDialog = false
+                                    viewmodel.resetGame()
                                     wordArray = newPal.toCharArray().toList()
-                                    wordState = List(wordArray.size) { null as Char?}
+                                    wordState = List(wordArray.size) { null as Char? }
                                     guessedLetters = setOf<Char>()
                                     palabra = newPal
                                 }
                             } else {
                                 guessedLetters = guessedLetters + i
-                                lives--
+                                viewmodel.subLives()
                             }
                         }, enabled = !guessedLetters.contains(i)) {
                             Text(text = i.toString())
