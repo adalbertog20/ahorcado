@@ -140,7 +140,6 @@ fun AhorcadoScreen(navController: NavHostController, word: String, viewmodel : G
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = palabra, fontSize = 50.sp, color = Color.Black)
         Text(text = "Puntaje: ${viewmodel.score}", fontSize = 50.sp, color = Color.Black)
         Spacer(modifier = Modifier.height(16.dp))
         Image(
